@@ -1,0 +1,1 @@
+V2.1 ottimizzata per iPhone: drop set Chest Press/Alzate frontali/Leg Press con 3 campi carico; Leg Extension con 2 carichi; Leg Curl seduto; storico, eliminazione, backup e blocco duplicati.
