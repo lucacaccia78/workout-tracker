@@ -1,0 +1,1 @@
+V2.2: modifica sessioni, recuperi con timer, superset, ultima prestazione. Mantiene la stessa chiave dati della V2.1, quindi conserva lo storico già inserito.
