@@ -1,0 +1,1 @@
+V2: reps target separate dalle reps effettive; blocco duplicati; elimina sessione; azzera dati; Leg curl seduto. Carica i file nel repository GitHub sostituendo quelli omonimi.
