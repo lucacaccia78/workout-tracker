@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0d0f13"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Workout"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>Workout Tracker</title>
+<style>
+:root{--bg:#0d0f13;--panel:#151922;--panel2:#1d2430;--line:#2c3544;--text:#f7f8fb;--muted:#a5adba;--good:#9ee6ad}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:980px;margin:0 auto;padding:18px 14px calc(80px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+h1{font-size:26px;margin:0}.sub{color:var(--muted);font-size:14px;margin-top:5px}
+.badge{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:12px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+button{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:12px;font:inherit;font-weight:700}
+button.active,.primary{background:#fff;color:#111}
+.day{display:none}.day.active{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:11px 0}
+.card h3{margin:0 0 4px;font-size:17px}.meta{color:var(--muted);font-size:13px;line-height:1.4}
+.sets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:11px}
+.set{background:var(--panel2);border-radius:12px;padding:10px}
+.set label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+input,textarea{width:100%;border:1px solid var(--line);background:#10141a;color:var(--text);border-radius:10px;padding:9px;font:inherit}
+textarea{min-height:62px;margin-top:9px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.toolbar input{width:auto}
+.notice{background:#111722;border:1px solid var(--line);padding:12px;border-radius:12px;color:var(--muted);font-size:13px}
+.history{margin-top:24px}.scroll{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:680px}
+th,td{padding:9px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
+th{color:var(--muted)}
+.status{margin-top:8px;font-size:13px;color:var(--good)}
+.footer{position:sticky;bottom:0;padding:16px 0 calc(8px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 28%)}
+@media(max-width:700px){.sets{grid-template-columns:1fr}.toolbar input{width:100%}header{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Workout Tracker</h1><div class="sub">Luca · Programma PT</div></div>
+  <div class="badge" id="installBadge">PWA</div>
+</header>
+
+<div class="toolbar">
+  <input id="date" type="date">
+  <button id="loadBtn">Carica ultimo</button>
+  <button id="exportBtn">Backup</button>
+</div>
+<div class="status" id="status"></div>
+
+<div class="tabs">
+  <button id="b1" class="active">DAY 1 · UPPER BODY</button>
+  <button id="b2">DAY 2 · LOWER BODY</button>
+</div>
+
+<div id="content"></div>
+
+<div class="history">
+  <h2 style="font-size:20px">Storico sessioni</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Data</th><th>Giorno</th><th>Esercizio</th><th>Carichi</th><th>Reps</th><th>Note</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  <button class="primary" id="saveBtn" style="width:100%">Salva allenamento</button>
+</div>
+</div>
+
+<script>
+const workouts={
+1:[
+{name:"Riscaldamento",meta:"10 kcal vogatore + riscaldamento generale parte alta",sets:0,type:"note"},
+{name:"Chest press",meta:"3 serie · 8+8+8 · peso a scalare",sets:3},
+{name:"Lat machine presa stretta",meta:"3×12 · recupero 60″",sets:3,reps:[12,12,12]},
+{name:"Cardio 1",meta:"20 kcal · attrezzo a piacere",sets:0,type:"cardio"},
+{name:"Bicipiti a martello",meta:"3 serie · max ripetizioni",sets:3},
+{name:"Tricipiti cavo alto presa inversa",meta:"3×12 · recupero 60″",sets:3,reps:[12,12,12]},
+{name:"Cardio 2",meta:"20 kcal · attrezzo a piacere",sets:0,type:"cardio"},
+{name:"Alzate frontali al cavo basso",meta:"3 serie · 8+8+8 · peso a scalare",sets:3},
+{name:"Plank commando",meta:"4 serie × 10",sets:4,type:"reps",reps:[10,10,10,10]},
+{name:"Cardio 3",meta:"20 kcal · attrezzo a piacere",sets:0,type:"cardio"}],
+2:[
+{name:"Riscaldamento",meta:"15 kcal bike + riscaldamento generale parte bassa",sets:0,type:"note"},
+{name:"Sumo belt squat",meta:"4×10 · recupero 90″",sets:4,reps:[10,10,10,10]},
+{name:"Affondi posteriori",meta:"3×20 · recupero 90″",sets:3,reps:[20,20,20]},
+{name:"Leg extension",meta:"10 rip con fermo + 5 senza fermo scalando il peso · 3 serie",sets:3,reps:["10+5","10+5","10+5"]},
+{name:"Leg curl sdraiato",meta:"4×10 · recupero 60″",sets:4,reps:[10,10,10,10]},
+{name:"Leg press",meta:"3 serie · 8+8+8 · peso a scalare",sets:3},
+{name:"Cardio finale",meta:"15–20 minuti · bassa intensità",sets:0,type:"cardio"}]};
+
+let currentDay=1;
+const KEY="workout_luca_pwa_v1";
+const $=id=>document.getElementById(id);
+$("date").value=new Date().toISOString().slice(0,10);
+
+function getStore(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){return[]}}
+function setStore(v){localStorage.setItem(KEY,JSON.stringify(v))}
+function showDay(day){currentDay=day;$("b1").classList.toggle("active",day===1);$("b2").classList.toggle("active",day===2);renderWorkout()}
+function renderWorkout(){
+  const c=$("content");c.innerHTML="";
+  workouts[currentDay].forEach((ex,idx)=>{
+    const d=document.createElement("div");d.className="card";
+    let h=`<h3>${ex.name}</h3><div class="meta">${ex.meta}</div>`;
+    if(ex.sets){
+      h+=`<div class="sets">`;
+      for(let s=0;s<ex.sets;s++){
+        const rp=ex.reps?ex.reps[s]:"";
+        h+=`<div class="set"><label>Serie ${s+1}</label><div class="grid2">
+        <input data-k="w-${idx}-${s}" ${ex.type==="reps"?"disabled":""} type="number" step="0.5" placeholder="${ex.type==="reps"?"—":"kg"}">
+        <input data-k="r-${idx}-${s}" type="${typeof rp==="number"?"number":"text"}" value="${rp}" placeholder="reps">
+        </div></div>`;
+      }
+      h+=`</div>`;
+    }
+    h+=`<textarea data-k="n-${idx}" placeholder="${ex.type==="cardio"?"Attrezzo / tempo / note":"Note"}"></textarea>`;
+    d.innerHTML=h;c.appendChild(d);
+  });
+}
+function collect(){
+  const vals={};
+  document.querySelectorAll("#content [data-k]").forEach(el=>{if(el.value!=="")vals[el.dataset.k]=el.value});
+  return {id:Date.now(),date:$("date").value,day:currentDay,vals};
+}
+function save(){
+  const all=getStore();all.push(collect());setStore(all);$("status").textContent="Allenamento salvato";renderHistory();
+}
+function load(){
+  const s=getStore().filter(x=>x.day===currentDay).sort((a,b)=>b.id-a.id)[0];
+  if(!s){$("status").textContent="Nessun allenamento precedente";return}
+  Object.entries(s.vals).forEach(([k,v])=>{const el=document.querySelector(`[data-k="${k}"]`);if(el)el.value=v});
+  $("status").textContent="Ultimo allenamento caricato";
+}
+function renderHistory(){
+  const tb=$("historyBody");tb.innerHTML="";
+  const all=getStore().slice().sort((a,b)=>b.id-a.id);
+  all.forEach(s=>{
+    workouts[s.day].forEach((ex,idx)=>{
+      let weights=[],reps=[];
+      for(let i=0;i<(ex.sets||0);i++){if(s.vals[`w-${idx}-${i}`])weights.push(s.vals[`w-${idx}-${i}`]);if(s.vals[`r-${idx}-${i}`])reps.push(s.vals[`r-${idx}-${i}`])}
+      const note=s.vals[`n-${idx}`]||"";
+      if(!(weights.length||reps.length||note))return;
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>${s.date}</td><td>Day ${s.day}</td><td>${ex.name}</td><td>${weights.join(" / ")||"—"}</td><td>${reps.join(" / ")||"—"}</td><td>${note||"—"}</td>`;
+      tb.appendChild(tr);
+    });
+  });
+  if(!tb.children.length){const tr=document.createElement("tr");tr.innerHTML='<td colspan="6" style="color:#a5adba">Nessuna sessione salvata.</td>';tb.appendChild(tr)}
+}
+function backup(){
+  const blob=new Blob([JSON.stringify(getStore(),null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="workout-backup.json";a.click();URL.revokeObjectURL(a.href);
+}
+$("b1").addEventListener("click",()=>showDay(1));$("b2").addEventListener("click",()=>showDay(2));
+$("saveBtn").addEventListener("click",save);$("loadBtn").addEventListener("click",load);$("exportBtn").addEventListener("click",backup);
+renderWorkout();renderHistory();
+
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"))}
+</script>
+</body>
+</html>
