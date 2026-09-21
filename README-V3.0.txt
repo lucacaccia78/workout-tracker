@@ -1,0 +1,2 @@
+Workout Tracker V3.0 — Classic
+Nuovo layout Classic blu/notte, bianco e azzurro. Nessuna scritta motivazionale. Mantiene storico V2.3 (luca_workout_v21), bozza/autosave (luca_workout_v23_draft), modifica, backup/import, timer e superset. Le icone sono leggere e offline. Il timer conserva i limiti iOS/PWA gia osservati per suono e vibrazione.
