@@ -1,0 +1,1 @@
+V4.0: sessioni persistenti IN CORSO/COMPLETATE; storico sola lettura; autosave; progressi per esercizio e gruppo muscolare; migrazione automatica da luca_workout_v21. Fare backup prima dell'upload.
